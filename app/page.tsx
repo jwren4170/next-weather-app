@@ -2,7 +2,9 @@
 
 import Container from "@/components/Container";
 import Navbar from "@/components/Navbar";
+import WeatherIcon from "@/components/WeatherIcon";
 import { WeatherData } from "@/types";
+import getDayOrNight from "@/utils/getDayOrNight";
 import { useQuery } from "@tanstack/react-query";
 
 const Home = () => {
@@ -53,7 +55,7 @@ const Home = () => {
                 )}
               </p>
               <Container className="gap-10 px-6 items-center">
-                <div className="border border-red-600 w-[150px] flex flex-col px-4">
+                <div className="w-[150px] flex flex-col px-4">
                   {/* Temperature */}
                   <span className="text-4xl self-center">
                     {Math.round(todaysWeather?.main.temp) ?? ""}°
@@ -71,23 +73,33 @@ const Home = () => {
                   </span>
                 </div>
                 {/* time and weather icon */}
-                <div className="border border-red-600 flex gap-10 sm:gap-16 overflow-x-auto w-full justify-between pr-3">
+                <div className="flex gap-10 sm:gap-16 overflow-x-auto w-full justify-between pr-3">
                   {data?.list.map((d, i) => (
                     <div
                       key={i}
                       className="flex flex-col items-center justify-between gap-2 text-xs font-semibold"
                     >
-                      <p className="w-max">
-                        {new Date(d.dt * 1000).toLocaleTimeString("en-US", {
+                      <p className="whitespace-nowrap">
+                        {new Date(d?.dt_txt).toLocaleTimeString("en-US", {
                           hour: "numeric",
                           minute: "numeric",
                         })}
                       </p>
+                      <WeatherIcon iconname={d?.weather[0].icon} />
+                      {/* <WeatherIcon
+                        iconname={getDayOrNight(d?.weather[0].icon, d?.dt_txt)}
+                      /> */}
+                      <p>{Math.round(d?.main.temp ?? 0)}°</p>
                     </div>
                   ))}
                 </div>
               </Container>
             </div>
+          </section>
+
+          {/* 5 day forecast */}
+          <section className="space-y-4">
+            <p>5 Day Forecast</p>
           </section>
         </main>
       </div>
