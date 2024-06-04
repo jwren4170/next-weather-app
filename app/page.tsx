@@ -2,9 +2,9 @@
 
 import Container from "@/components/Container";
 import Navbar from "@/components/Navbar";
+import WeatherDetails from "@/components/WeatherDetails";
 import WeatherIcon from "@/components/WeatherIcon";
 import { WeatherData } from "@/types";
-import getDayOrNight from "@/utils/getDayOrNight";
 import { useQuery } from "@tanstack/react-query";
 
 const Home = () => {
@@ -13,7 +13,7 @@ const Home = () => {
     queryFn: () =>
       fetch(
         `https://api.openweathermap.org/data/2.5/forecast?q=New Haven,MO,US&units=imperial&appid=${process.env.NEXT_PUBLIC_OPENWEATHERMAP_API_KEY}`,
-        { next: { revalidate: 3600 } }
+        { next: { revalidate: 60 } }
       )
         .then((res) => res.json())
         .then((data) => {
@@ -32,7 +32,7 @@ const Home = () => {
 
   if (error) return "An error has occurred: " + error.message;
 
-  const todaysWeather = data?.list[0];
+  const firstData = data?.list[0];
   return (
     <>
       <Navbar />
@@ -44,32 +44,27 @@ const Home = () => {
               <h2 className="flex gap-1 text-2xl items-end"></h2>
               {/* Date */}
               <p className="text-lg flex gap-1 items-end">
-                {new Date(todaysWeather?.dt * 1000).toLocaleDateString(
-                  "en-US",
-                  {
-                    year: "numeric",
-                    day: "numeric",
-                    month: "short",
-                    weekday: "long",
-                  }
-                )}
+                {new Date(firstData?.dt * 1000).toLocaleDateString("en-US", {
+                  year: "numeric",
+                  day: "numeric",
+                  month: "short",
+                  weekday: "long",
+                })}
               </p>
               <Container className="gap-10 px-6 items-center">
                 <div className="w-[150px] flex flex-col px-4">
                   {/* Temperature */}
                   <span className="text-4xl self-center">
-                    {Math.round(todaysWeather?.main.temp) ?? ""}°
+                    {Math.round(firstData?.main.temp) ?? ""}°
                   </span>
                   {/* Feels like and high/low temp */}
                   <span className="text-xs text-gray-600">
-                    Feels like{" "}
-                    {Math.round(todaysWeather?.main.feels_like) ?? ""}°
+                    Feels like {Math.round(firstData?.main.feels_like) ?? ""}°
                   </span>
                   {/* High/low */}
                   <span className="text-xs text-gray-600 flex flex-row">
-                    {Math.round(todaysWeather?.main.temp_min) ?? ""}° &darr;
-                    &nbsp;
-                    {Math.round(todaysWeather?.main.temp_max) ?? ""}° &uarr;
+                    {Math.round(firstData?.main.temp_min) ?? ""}° &darr; &nbsp;
+                    {Math.round(firstData?.main.temp_max) ?? ""}° &uarr;
                   </span>
                 </div>
                 {/* time and weather icon */}
@@ -95,11 +90,42 @@ const Home = () => {
                 </div>
               </Container>
             </div>
+            <div className="flex gap-4">
+              {/* left */}
+              <Container className="w-min flex justify-center flex-col px-4 items-center">
+                <p className="capitalize text-center">
+                  {firstData.weather[0].description}
+                </p>
+                <WeatherIcon iconname={firstData.weather[0].icon} />
+              </Container>
+              {/* right */}
+              <Container className="bg-yellow-300/80 px-6 gap-4 justify-between overflow-x-auto">
+                <WeatherDetails
+                  airPressure={firstData.main.pressure}
+                  humidity={firstData.main.humidity}
+                  sunset={new Date(data.city.sunset * 1000).toLocaleTimeString(
+                    "en-US",
+                    {
+                      hour: "numeric",
+                      minute: "numeric",
+                    }
+                  )}
+                  sunrise={new Date(
+                    data.city.sunrise * 1000
+                  ).toLocaleTimeString("en-US", {
+                    hour: "numeric",
+                    minute: "numeric",
+                  })}
+                  visibility={firstData.visibility / 1000}
+                  windSpeed={firstData.wind.speed}
+                />
+              </Container>
+            </div>
           </section>
 
           {/* 5 day forecast */}
-          <section className="space-y-4">
-            <p>5 Day Forecast</p>
+          <section className="space-y-4 flex flex-col gap-4 w-full">
+            <p className="text-2xl">5 Day Forecast</p>
           </section>
         </main>
       </div>
